@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f1a">
+<title>Buzzer</title>
+<link rel="stylesheet" href="/style.css">
+<script>
+  // Reopened browser? Go straight back to the game you were in.
+  const last = localStorage.getItem('buzzer.last');
+  if (last) location.replace(last);
+</script>
+</head>
+<body>
+<main class="center">
+  <div class="stack" style="width:100%;max-width:420px">
+    <div style="text-align:center;margin-bottom:8px">
+      <div class="brand" style="font-size:44px">Buzz<span>er</span></div>
+      <p class="muted" style="margin:4px 0 0">Millisecond-fair buzzers for quiz night</p>
+    </div>
+    <form id="join" class="card stack">
+      <h3>Join a game</h3>
+      <input id="code" placeholder="Room code" maxlength="5" autocapitalize="characters" autocomplete="off" required aria-label="Room code"
+        style="text-transform:uppercase;letter-spacing:.2em;font-weight:700;text-align:center;font-size:22px">
+      <input id="name" placeholder="Your name" maxlength="24" required aria-label="Your name" autocomplete="nickname">
+      <button class="primary">Join</button>
+    </form>
+    <a href="/host.html"><button style="width:100%">Host a new game</button></a>
+  </div>
+</main>
+<script>
+  const name = document.getElementById('name');
+  name.value = localStorage.getItem('buzzer.name') || '';
+  document.getElementById('join').onsubmit = e => {
+    e.preventDefault();
+    localStorage.setItem('buzzer.name', name.value.trim());
+    location.href = '/play.html?room=' + encodeURIComponent(document.getElementById('code').value.trim().toUpperCase());
+  };
+</script>
+</body>
+</html>

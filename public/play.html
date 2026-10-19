@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f1a">
+<title>Buzzer – Player</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body class="play">
+<div class="conn" role="status">Reconnecting…</div>
+<main>
+  <p class="err" id="err" role="alert"></p>
+
+  <div id="loading" class="center"><div><div class="spinner"></div><p class="muted">Connecting to room…</p></div></div>
+
+  <form id="nameForm" class="center" hidden>
+    <div class="card stack" style="width:100%;max-width:420px">
+      <div class="brand">Buzz<span>er</span></div>
+      <p class="muted" style="margin:0">Joining room <b id="room0"></b></p>
+      <input id="newName" maxlength="24" required placeholder="Your name" aria-label="Your name" autocomplete="nickname">
+      <button class="primary">Join game</button>
+    </div>
+  </form>
+
+  <div id="game" hidden>
+    <div class="top">
+      <details id="edit">
+        <summary id="myname" aria-label="Change your name"></summary>
+      </details>
+      <span class="pill">Room <b id="room"></b></span>
+      <span class="scorebig" id="score" aria-label="Your score">0</span>
+    </div>
+    <div class="card edit" id="editBox" hidden>
+      <form id="renameForm" class="row">
+        <input id="name" maxlength="24" aria-label="Your name">
+        <button class="primary">Save</button>
+      </form>
+      <button id="leave" class="ghost muted" style="width:100%;margin-top:8px">Leave room</button>
+    </div>
+    <div class="buzzwrap">
+      <button id="buzz" class="locked" aria-live="polite">WAIT</button>
+      <div class="status" id="status"></div>
+    </div>
+    <div class="card panel">
+      <div class="tabs" role="tablist">
+        <button data-tab="order" class="on" role="tab">Buzz order</button>
+        <button data-tab="board" role="tab">Scores</button>
+      </div>
+      <div class="scroll">
+        <ol class="list" id="order"></ol>
+        <table id="board" hidden></table>
+      </div>
+    </div>
+  </div>
+</main>
+<script src="/client.js"></script>
+<script>
+  const code = new URLSearchParams(location.search).get('room')?.toUpperCase();
+  if (!code) location.replace('/');
+  const idKey = 'buzzer.player.' + code;
+  let state = null, joined = false;
+  $('room').textContent = $('room0').textContent = code;
+  const show = id => ['loading', 'nameForm', 'game'].forEach(v => $(v).hidden = v !== id);
+
+  const api = connect(join, (m) => {
+    if (m.t === 'joined') {
+      joined = true;
+      localStorage.setItem(idKey, m.playerId);
+      localStorage.setItem('buzzer.last', location.href);
+      $('err').textContent = '';
+      show('game');
+    } else if (m.t === 'state') render(m);
+    else if (m.t === 'ended') { forget(); location.replace('/'); }
+    else if (m.t === 'error') { $('err').textContent = m.msg; if (!joined) show('nameForm'); }
+  });
+
+  function join(api) {
+    joined = false;
+    const playerId = localStorage.getItem(idKey), name = localStorage.getItem('buzzer.name');
+    if (!playerId && !name) { show('nameForm'); $('newName').focus(); return; }
+    api.send({ t: 'join', code, playerId, name });
+  }
+  function forget() { localStorage.removeItem(idKey); localStorage.removeItem('buzzer.last'); }
+
+  $('nameForm').onsubmit = e => {
+    e.preventDefault();
+    localStorage.setItem('buzzer.name', $('newName').value.trim());
+    show('loading');
+    join(api);
+  };
+  $('renameForm').onsubmit = e => {
+    e.preventDefault();
+    const name = $('name').value.trim();
+    if (!name) return;
+    localStorage.setItem('buzzer.name', name);
+    api.send({ t: 'rename', name });
+    $('name').blur();
+    $('edit').open = false;
+  };
+  $('edit').ontoggle = () => { $('editBox').hidden = !$('edit').open; if ($('edit').open) $('name').focus(); };
+  document.querySelector('.tabs').onclick = e => {
+    const tab = e.target.closest('button')?.dataset.tab;
+    if (!tab) return;
+    document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+    $('order').hidden = tab !== 'order'; $('board').hidden = tab !== 'board';
+  };
+  $('leave').onclick = () => { localStorage.removeItem('buzzer.last'); location.href = '/'; };
+
+  // Use the event's own timestamp (time of the physical press), not when JS got around to it.
+  function buzz(ts) {
+    if (!state?.open || state.buzzes.some(b => b.id === localStorage.getItem(idKey))) return;
+    api.send({ t: 'buzz', at: performance.timeOrigin + ts + api.offset() });
+    navigator.vibrate?.(40);
+  }
+  $('buzz').addEventListener('pointerdown', e => buzz(e.timeStamp));
+  $('buzz').addEventListener('contextmenu', e => e.preventDefault());
+  addEventListener('keydown', e => {
+    if (e.code === 'Space' && !e.repeat && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); buzz(e.timeStamp); }
+  });
+
+  function render(s) {
+    state = s;
+    const myId = localStorage.getItem(idKey);
+    const me = s.players.find(p => p.id === myId);
+    const rank = s.buzzes.findIndex(b => b.id === myId);
+    $('buzz').className = rank >= 0 ? 'done' : s.open ? 'live' : 'locked';
+    $('buzz').textContent = rank >= 0 ? `#${rank + 1}` : s.open ? 'BUZZ' : 'WAIT';
+    $('status').textContent = rank === 0 ? `You were first! (${s.buzzes[0].ms.toFixed(1)} ms)`
+      : rank > 0 ? `${(s.buzzes[rank].ms - s.buzzes[0].ms).toFixed(1)} ms behind first`
+      : s.open ? 'Tap the button or press Space' : 'Waiting for the host to open buzzers';
+    $('score').textContent = me?.score ?? 0;
+    $('myname').textContent = me?.name ?? '';
+    if (document.activeElement !== $('name')) $('name').value = me?.name ?? '';
+    $('order').innerHTML = renderBuzzes(s);
+    $('board').innerHTML = [...s.players].sort((a, b) => b.score - a.score).map(p =>
+      `<tr class="${p.id === myId ? 'me' : ''}"><td class="nm"><span class="dot ${p.online ? 'on' : ''}"></span> ${esc(p.name)}${p.id === myId ? ' (you)' : ''}</td><td class="n">${p.score}</td></tr>`).join('');
+  }
+</script>
+</body>
+</html>

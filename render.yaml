@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: buzzer
+    runtime: node
+    plan: free
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /
