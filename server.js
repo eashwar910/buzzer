@@ -67,7 +67,7 @@ function handle(ws, m) {
       let id = m.playerId, p = room.players.get(id);
       if (!p) {
         const name = cleanName(m.name);
-        if (!name) return send(ws, { t: 'error', msg: 'Enter a table number.' });
+        if (!name) return send(ws, { t: 'error', msg: 'Enter a name.' });
         id = crypto.randomUUID();
         p = { name, score: 0, sockets: new Set() };
         room.players.set(id, p);
