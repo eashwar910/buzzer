@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b0f1a">
+<meta name="theme-color" content="#f7f6f0">
 <title>Buzzer</title>
+<link rel="preload" href="/ds/fonts/PixelifySans-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/ds/tokens.css">
+<link rel="stylesheet" href="/ds/components.css">
 <link rel="stylesheet" href="/style.css">
 <script>
   // Reopened browser? Go straight back to the game you were in.
@@ -11,21 +14,28 @@
   if (last) location.replace(last);
 </script>
 </head>
-<body>
-<main class="center">
-  <div class="stack" style="width:100%;max-width:420px">
-    <div style="text-align:center;margin-bottom:8px">
-      <div class="brand" style="font-size:44px">Buzz<span>er</span></div>
-      <p class="muted" style="margin:4px 0 0">Millisecond-fair buzzers for quiz night</p>
-    </div>
-    <form id="join" class="card stack">
-      <h3>Join a game</h3>
-      <input id="code" placeholder="Room code" maxlength="5" autocapitalize="characters" autocomplete="off" required aria-label="Room code"
-        style="text-transform:uppercase;letter-spacing:.2em;font-weight:700;text-align:center;font-size:22px">
-      <input id="name" placeholder="Your name" maxlength="24" required aria-label="Your name" autocomplete="nickname">
-      <button class="primary">Join</button>
+<body class="cs-gridpaper">
+<main>
+  <div class="landing">
+    <svg class="sparkles cs-sparkle cs-fill-mint" width="56" height="56" viewBox="0 0 48 48" aria-hidden="true">
+      <rect x="19" y="1" width="10" height="46"/><rect x="19" y="1" width="10" height="46" transform="rotate(45 24 24)"/>
+      <rect x="19" y="1" width="10" height="46" transform="rotate(90 24 24)"/><rect x="19" y="1" width="10" height="46" transform="rotate(135 24 24)"/>
+    </svg>
+    <p class="cs-eyebrow">Computer Science Society / Quiz show</p>
+    <h1 class="cs-headline cs-headline-display" style="margin-top:var(--space-2)">Quiz <span class="cs-accent">show.</span></h1>
+    <p class="cs-lead">Anyone at a table can hit the buzzer. First press wins.</p>
+
+    <form id="join" class="cs-win">
+      <div class="cs-win-bar"><span class="cs-win-title">join.exe</span><span class="cs-win-controls"><i></i><i></i><i></i></span></div>
+      <div class="cs-win-body stack">
+        <label class="tag" for="code">Room code</label>
+        <input id="code" class="code-in" maxlength="5" autocapitalize="characters" autocomplete="off" spellcheck="false" required>
+        <label class="tag" for="name">Your name</label>
+        <input id="name" maxlength="24" required autocomplete="nickname">
+        <button class="cs-btn cs-btn-mint block" style="margin-top:var(--space-2)">Join →</button>
+      </div>
     </form>
-    <a href="/host.html"><button style="width:100%">Host a new game</button></a>
+    <a class="cs-btn cs-btn-paper block" href="/host.html">Host a new game →</a>
   </div>
 </main>
 <script>

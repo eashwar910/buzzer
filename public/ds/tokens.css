@@ -1,0 +1,84 @@
+/* CSS — generated from tokens.json */
+@font-face { font-family: 'Pixelify Sans'; src: url('fonts/PixelifySans-400.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Pixelify Sans'; src: url('fonts/PixelifySans-500.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Pixelify Sans'; src: url('fonts/PixelifySans-600.woff2') format('woff2'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Pixelify Sans'; src: url('fonts/PixelifySans-700.woff2') format('woff2'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'DM Sans'; src: url('fonts/DMSans-400.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'DM Sans'; src: url('fonts/DMSans-500.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'DM Sans'; src: url('fonts/DMSans-600.woff2') format('woff2'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'DM Sans'; src: url('fonts/DMSans-700.woff2') format('woff2'); font-weight: 700; font-display: swap; }
+:root, [data-theme="light"] {
+  --paper: #f7f6f0;
+  --paper-raised: #faf9f5;
+  --grid-line: #ebeae8;
+  --chrome: #e5e3ea;
+  --ink: #2b2a3b;
+  --ink-muted: #4c495f;
+  --frame: #2b2a3b;
+  --primary: #676497;
+  --on-primary: #f8f4ff;
+  --primary-soft: #ece8f7;
+  --control: #d5d0ef;
+  --screen: #262431;
+  --on-screen: #e3dcf9;
+  --mint: #93e2a4;
+  --mint-soft: #ceecd7;
+  --pink: #eb99d6;
+  --lavender: #aca4db;
+  --lavender-light: #bcb8ec;
+  --yellow: #f6e59e;
+  --on-accent: #2b2a3b;
+  --shadow-block: #d1cedd;
+  --shadow-window: 8px 8px 0 0 #d1cedd;
+  --shadow-button: 5px 5px 0 0 #d1cedd;
+  --shadow-press: 2px 2px 0 0 #d1cedd;
+  --focus-ring: 0 0 0 2px #f7f6f0, 0 0 0 4px #676497;
+}
+[data-theme="dark"] {
+  --paper: #3e394a;
+  --paper-raised: #48425a;
+  --grid-line: #433e50;
+  --chrome: #252430;
+  --ink: #e3dcf9;
+  --ink-muted: #c9c0ee;
+  --frame: #b6aaeb;
+  --primary: #b6aaeb;
+  --on-primary: #252430;
+  --primary-soft: #4a4462;
+  --control: #e3dcf9;
+  --screen: #252430;
+  --mint-soft: #3f5a4d;
+  --lavender: #b6aaeb;
+  --shadow-block: #1d1c27;
+  --shadow-window: 8px 8px 0 0 #1d1c27;
+  --shadow-button: 5px 5px 0 0 #1d1c27;
+  --shadow-press: 2px 2px 0 0 #1d1c27;
+  --focus-ring: 0 0 0 2px #3e394a, 0 0 0 4px #93e2a4;
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-slide: 44px;
+  --grid-pitch: 24px;
+  --radius-none: 0;
+  --border-frame: 2px;
+  --border-hair: 1px;
+  --font-pixel: "Pixelify Sans", ui-monospace, monospace;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+}
+.display { font-family: var(--font-pixel); font-size: 56px; line-height: 1; font-weight: 700; }
+.headline { font-family: var(--font-pixel); font-size: 42px; line-height: 1.05; font-weight: 700; }
+.stat { font-family: var(--font-pixel); font-size: 22px; line-height: 28px; font-weight: 500; }
+.button { font-family: var(--font-pixel); font-size: 15px; line-height: 20px; font-weight: 500; }
+.window-title { font-family: var(--font-pixel); font-size: 13px; line-height: 16px; font-weight: 500; }
+.label { font-family: var(--font-pixel); font-size: 11px; line-height: 14px; font-weight: 500; letter-spacing: 0.06em; }
+.eyebrow { font-family: var(--font-sans); font-size: 13px; line-height: 16px; font-weight: 600; letter-spacing: 0.14em; }
+.lead { font-family: var(--font-sans); font-size: 18px; line-height: 26px; font-weight: 400; }
+.name { font-family: var(--font-sans); font-size: 24px; line-height: 30px; font-weight: 600; }
+.body { font-family: var(--font-sans); font-size: 15px; line-height: 22px; font-weight: 400; }
+.caption { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 400; }
+.tile-letter { font-family: var(--font-sans); font-size: 40px; line-height: 1; font-weight: 600; }

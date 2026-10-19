@@ -7,7 +7,7 @@ const { WebSocketServer } = require('ws');
 const QRCode = require('qrcode');
 
 const PUB = path.join(__dirname, 'public');
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.woff2': 'font/woff2' };
 // Sub-millisecond wall clock; clients use the same formula so offsets line up.
 const now = () => performance.timeOrigin + performance.now();
 

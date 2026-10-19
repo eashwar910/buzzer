@@ -35,7 +35,7 @@ function connect(onOpen, onMessage) {
 
 function renderBuzzes(s) {
   const name = id => esc(s.players.find(p => p.id === id)?.name ?? '?');
-  if (!s.buzzes.length) return `<li class="empty muted">${s.open ? 'Waiting for buzzes…' : 'Buzzers are locked'}</li>`;
+  if (!s.buzzes.length) return `<li class="empty">${s.open ? 'waiting for buzzes...' : 'buzzers locked'}</li>`;
   return s.buzzes.map((b, i) => `<li><b>${name(b.id)}</b><span class="time">${
     i === 0 ? `${b.ms.toFixed(1)} ms` : `+${(b.ms - s.buzzes[0].ms).toFixed(1)} ms`}</span></li>`).join('');
 }

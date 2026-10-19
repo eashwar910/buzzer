@@ -2,45 +2,67 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b0f1a">
+<meta name="theme-color" content="#f7f6f0">
 <title>Buzzer – Host</title>
+<link rel="preload" href="/ds/fonts/PixelifySans-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/ds/tokens.css">
+<link rel="stylesheet" href="/ds/components.css">
 <link rel="stylesheet" href="/style.css">
 </head>
-<body class="hosting">
-<div class="conn" role="status">Reconnecting…</div>
+<body class="hosting cs-gridpaper">
+<div class="conn" role="status">&gt; reconnecting...</div>
 <main>
-  <div class="row spread" style="margin-bottom:14px">
-    <div class="brand">Buzz<span>er</span> <span class="muted" style="font-size:16px;font-weight:600">host</span></div>
-    <button class="danger" id="end">End game</button>
-  </div>
+  <header class="hostbar">
+    <div>
+      <p class="cs-eyebrow">Computer Science Society / Host</p>
+      <h1 class="cs-headline" style="margin-top:var(--space-2)">Quiz <span class="cs-accent">show.</span></h1>
+    </div>
+    <div class="row">
+      <button class="cs-btn cs-btn-paper" id="sound" aria-pressed="true">Sound: on</button>
+      <button class="cs-btn cs-btn-paper" id="end">End game</button>
+    </div>
+  </header>
   <p class="err" id="err" role="alert"></p>
 
   <div class="host">
     <div>
-      <div class="card join">
-        <h3>Scan to join</h3>
-        <img id="qr" class="qr" alt="QR code to join this room (tap to enlarge)" hidden>
-        <div style="min-width:0">
-          <div class="code" id="code">·····</div>
-          <a id="link" target="_blank"></a>
+      <section class="cs-win join">
+        <span class="cs-tape" aria-hidden="true"></span>
+        <div class="cs-win-bar"><span class="cs-win-title">join_room.exe</span><span class="cs-win-controls"><i></i><i></i><i></i></span></div>
+        <div class="cs-win-body">
+          <img id="qr" class="qr" alt="QR code to join this room. Tap to enlarge." hidden>
+          <div style="min-width:0">
+            <p class="tag" style="margin:0 0 var(--space-1)">Scan or enter code</p>
+            <div class="code" id="code">-----</div>
+            <a id="link" target="_blank"></a>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
 
     <div>
-      <div class="card controls">
-        <button class="primary" id="open">Open buzzers</button>
-        <button id="lock">Lock</button>
-        <button id="reset">Clear</button>
-      </div>
-      <div class="card"><h3>Buzz order</h3><ol class="list" id="order"></ol></div>
-      <div class="card">
-        <div class="row spread" style="margin-bottom:4px">
-          <h3 style="margin:0">Players <span id="count"></span></h3>
-          <label class="step">Points per tap <input id="step" type="number" value="1" min="1" inputmode="numeric"></label>
+      <section class="cs-win controls">
+        <div class="cs-win-bar"><span class="cs-win-title">controls.exe</span><span class="cs-win-controls"><i></i><i></i><i></i></span></div>
+        <div class="cs-win-body">
+          <button class="cs-btn cs-btn-mint" id="open">Open →</button>
+          <button class="cs-btn cs-btn-paper" id="lock">Lock</button>
+          <button class="cs-btn cs-btn-paper" id="reset">Clear</button>
         </div>
-        <table id="players"></table>
-      </div>
+      </section>
+      <section class="cs-win cs-win-screen">
+        <div class="cs-win-bar"><span class="cs-win-title">buzz_order.log</span><span class="cs-win-controls"><i></i><i></i><i></i></span></div>
+        <div class="cs-win-body"><ol class="log" id="order"></ol></div>
+      </section>
+      <section class="cs-win cs-win-outline-primary">
+        <div class="cs-win-bar"><span class="cs-win-title" id="ptitle">players.db</span><span class="cs-win-controls"><i></i><i></i><i></i></span></div>
+        <div class="cs-win-body">
+          <div class="row spread" style="margin-bottom:var(--space-2)">
+            <span class="tag" id="count"></span>
+            <label class="step tag">Points per tap <input id="step" type="number" value="1" min="1" inputmode="numeric"></label>
+          </div>
+          <table id="players"></table>
+        </div>
+      </section>
     </div>
   </div>
 </main>
@@ -49,6 +71,28 @@
   let code = new URLSearchParams(location.search).get('room')?.toUpperCase();
   const tokenKey = () => 'buzzer.host.' + code;
   const host = api => api.send({ t: 'host', code, hostToken: localStorage.getItem(tokenKey()) });
+
+  // Sound effects, synthesized so there are no audio files. Browsers only allow audio after a tap,
+  // so the context is created on the host's first click (they always click Open before buzzes come in).
+  let ac, muted = localStorage.getItem('buzzer.mute') === '1', prevBuzzes = null;
+  addEventListener('pointerdown', () => { ac ??= new AudioContext(); ac.resume(); });
+  function tone(freq, dur, { type = 'square', vol = .15, at = 0, slide } = {}) {
+    if (muted || !ac) return;
+    const t = ac.currentTime + at, o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g).connect(ac.destination); o.start(t); o.stop(t + dur);
+  }
+  const sfx = {
+    open: () => [523, 659, 784].forEach((f, i) => tone(f, .1, { at: i * .08 })),
+    lock: () => tone(330, .18, { slide: 165 }),
+    first: () => { tone(110, .55, { type: 'sawtooth', vol: .3 }); tone(220, .55, { type: 'square', vol: .12 }); },
+    next: () => tone(880, .07, { vol: .1 }),
+  };
+  const setSound = () => { $('sound').textContent = muted ? 'Sound: off' : 'Sound: on'; $('sound').setAttribute('aria-pressed', !muted); };
+  setSound();
+  $('sound').onclick = () => { muted = !muted; localStorage.setItem('buzzer.mute', muted ? '1' : '0'); setSound(); sfx.next(); };
 
   const api = connect(api => code ? host(api) : api.send({ t: 'create' }), (m, api) => {
     if (m.t === 'created') {
@@ -64,11 +108,11 @@
   });
 
   $('qr').onclick = () => $('qr').classList.toggle('big');
-  $('open').onclick =() => api.send({ t: 'open' });
-  $('lock').onclick = () => api.send({ t: 'lock' });
+  $('open').onclick = () => { api.send({ t: 'open' }); sfx.open(); };
+  $('lock').onclick = () => { api.send({ t: 'lock' }); sfx.lock(); };
   // "Clear" = reopen then lock: wipes the buzz list without leaving buzzers live.
   $('reset').onclick = () => { api.send({ t: 'open' }); api.send({ t: 'lock' }); };
-  $('end').onclick = () => confirm('End the game for everyone?') && api.send({ t: 'end' });
+  $('end').onclick = () => confirm('End the game for everyone? Scores will be lost.') && api.send({ t: 'end' });
   $('players').onclick = e => {
     const b = e.target.closest('button[data-id]');
     if (b) api.send({ t: 'score', playerId: b.dataset.id, delta: Number(b.dataset.sign) * (Number($('step').value) || 1) });
@@ -77,21 +121,23 @@
   function render(s) {
     localStorage.setItem('buzzer.last', location.href);
     $('err').textContent = '';
+    // Sound only for buzzes that arrive while this page is open, not for the list we load on connect.
+    if (prevBuzzes !== null && s.buzzes.length > prevBuzzes) prevBuzzes === 0 ? sfx.first() : sfx.next();
+    prevBuzzes = s.buzzes.length;
     const url = `${location.origin}/play.html?room=${s.code}`;
     $('code').textContent = s.code;
     $('link').textContent = $('link').href = url;
     if ($('qr').hidden) { $('qr').src = '/qr?text=' + encodeURIComponent(url); $('qr').hidden = false; }
-    $('open').textContent = s.open ? 'Reset & reopen' : 'Open buzzers';
+    $('open').textContent = s.open ? 'Reset →' : 'Open →';
     $('lock').disabled = !s.open;
     $('reset').disabled = !s.buzzes.length;
     $('order').innerHTML = renderBuzzes(s);
-    $('count').textContent = s.players.length ? `· ${s.players.length}` : '';
+    $('count').textContent = `${String(s.players.length).padStart(2, '0')} players · ${s.players.filter(p => p.online).length} online`;
     $('players').innerHTML = s.players.length ? s.players.map(p => `<tr>
-      <td class="nm"><span class="dot ${p.online ? 'on' : ''}"></span> ${esc(p.name)}</td>
+      <td class="nm"><span class="dot ${p.online ? 'on' : ''}"></span>${esc(p.name)}</td>
       <td class="n">${p.score}</td>
-      <td class="a"><button data-id="${p.id}" data-sign="-1" aria-label="Remove points from ${esc(p.name)}">−</button>
-        <button data-id="${p.id}" data-sign="1" aria-label="Add points to ${esc(p.name)}">+</button></td></tr>`).join('')
-      : '<tr><td class="muted">No players yet. Scan the QR code to join.</td></tr>';
+      <td class="a"><button class="cs-btn cs-btn-paper" data-id="${p.id}" data-sign="-1" aria-label="Remove points from ${esc(p.name)}">−</button><button class="cs-btn cs-btn-paper" data-id="${p.id}" data-sign="1" aria-label="Add points to ${esc(p.name)}">+</button></td></tr>`).join('')
+      : '<tr><td class="caption">No players yet. Scan the code to join.</td></tr>';
   }
 </script>
 </body>

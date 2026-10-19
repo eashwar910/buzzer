@@ -2,23 +2,34 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b0f1a">
+<meta name="theme-color" content="#f7f6f0">
 <title>Buzzer – Player</title>
+<link rel="preload" href="/ds/fonts/PixelifySans-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/ds/tokens.css">
+<link rel="stylesheet" href="/ds/components.css">
 <link rel="stylesheet" href="/style.css">
 </head>
-<body class="play">
-<div class="conn" role="status">Reconnecting…</div>
+<body class="play cs-gridpaper">
+<div class="conn" role="status">&gt; reconnecting...</div>
 <main>
   <p class="err" id="err" role="alert"></p>
 
-  <div id="loading" class="center"><div><div class="spinner"></div><p class="muted">Connecting to room…</p></div></div>
+  <div id="loading" class="center">
+    <div class="cs-win cs-win-screen">
+      <div class="cs-win-bar"><span class="cs-win-title">connect.exe</span><span class="cs-win-controls"><i></i><i></i><i></i></span></div>
+      <div class="cs-win-body"><p class="cs-terminal">&gt; joining room <span class="roomcode"></span>...<span class="cs-cursor">_</span></p></div>
+    </div>
+  </div>
 
   <form id="nameForm" class="center" hidden>
-    <div class="card stack" style="width:100%;max-width:420px">
-      <div class="brand">Buzz<span>er</span></div>
-      <p class="muted" style="margin:0">Joining room <b id="room0"></b></p>
-      <input id="newName" maxlength="24" required placeholder="Your name" aria-label="Your name" autocomplete="nickname">
-      <button class="primary">Join game</button>
+    <div class="cs-win">
+      <div class="cs-win-bar"><span class="cs-win-title">join.exe</span><span class="cs-win-controls"><i></i><i></i><i></i></span></div>
+      <div class="cs-win-body stack">
+        <p class="cs-eyebrow">Room <span class="roomcode"></span></p>
+        <label class="tag" for="newName">Your name</label>
+        <input id="newName" maxlength="24" required autocomplete="nickname">
+        <button class="cs-btn cs-btn-mint block">Join →</button>
+      </div>
     </div>
   </form>
 
@@ -27,28 +38,37 @@
       <details id="edit">
         <summary id="myname" aria-label="Change your name"></summary>
       </details>
-      <span class="pill">Room <b id="room"></b></span>
-      <span class="scorebig" id="score" aria-label="Your score">0</span>
+      <span class="tag">Room <span class="roomcode"></span></span>
+      <span class="score" aria-label="Your score"><b id="score">0</b><span>PTS</span></span>
     </div>
-    <div class="card edit" id="editBox" hidden>
-      <form id="renameForm" class="row">
-        <input id="name" maxlength="24" aria-label="Your name">
-        <button class="primary">Save</button>
-      </form>
-      <button id="leave" class="ghost muted" style="width:100%;margin-top:8px">Leave room</button>
-    </div>
-    <div class="buzzwrap">
-      <button id="buzz" class="locked" aria-live="polite">WAIT</button>
-      <div class="status" id="status"></div>
-    </div>
-    <div class="card panel">
-      <div class="tabs" role="tablist">
-        <button data-tab="order" class="on" role="tab">Buzz order</button>
-        <button data-tab="board" role="tab">Scores</button>
+    <div class="cs-win" id="editBox" hidden>
+      <div class="cs-win-bar"><span class="cs-win-title">rename.exe</span><span class="cs-win-controls"><i></i><i></i><i></i></span></div>
+      <div class="cs-win-body">
+        <form id="renameForm" class="row">
+          <input id="name" maxlength="24" aria-label="Your name">
+          <button class="cs-btn cs-btn-mint">Save</button>
+        </form>
+        <button id="leave" class="cs-btn cs-btn-paper block" style="margin-top:var(--space-4)">Leave room</button>
       </div>
-      <div class="scroll">
-        <ol class="list" id="order"></ol>
-        <table id="board" hidden></table>
+    </div>
+    <div class="cs-win buzzwin">
+      <div class="cs-win-bar"><span class="cs-win-title">buzzer.app</span><span class="cs-win-controls"><i></i><i></i><i></i></span></div>
+      <div class="cs-win-body">
+        <button id="buzz" class="locked" aria-live="polite">WAIT</button>
+        <p class="status" id="status"></p>
+      </div>
+    </div>
+    <div class="cs-win panel screen" id="panel">
+      <div class="cs-win-bar"><span class="cs-win-title" id="paneltitle">buzz_order.log</span><span class="cs-win-controls"><i></i><i></i><i></i></span></div>
+      <div class="cs-win-body">
+        <div class="tabs" role="tablist">
+          <button data-tab="order" class="on" role="tab">Buzz order</button>
+          <button data-tab="board" role="tab">Scores</button>
+        </div>
+        <div class="scroll">
+          <ol class="log" id="order"></ol>
+          <table id="board" hidden></table>
+        </div>
       </div>
     </div>
   </div>
@@ -59,8 +79,9 @@
   if (!code) location.replace('/');
   const idKey = 'buzzer.player.' + code;
   let state = null, joined = false;
-  $('room').textContent = $('room0').textContent = code;
+  document.querySelectorAll('.roomcode').forEach(el => el.textContent = code);
   const show = id => ['loading', 'nameForm', 'game'].forEach(v => $(v).hidden = v !== id);
+  const pad = n => String(n).padStart(2, '0');
 
   const api = connect(join, (m) => {
     if (m.t === 'joined') {
@@ -103,6 +124,8 @@
     if (!tab) return;
     document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
     $('order').hidden = tab !== 'order'; $('board').hidden = tab !== 'board';
+    $('panel').classList.toggle('screen', tab === 'order');
+    $('paneltitle').textContent = tab === 'order' ? 'buzz_order.log' : 'scores.db';
   };
   $('leave').onclick = () => { localStorage.removeItem('buzzer.last'); location.href = '/'; };
 
@@ -112,7 +135,7 @@
     api.send({ t: 'buzz', at: performance.timeOrigin + ts + api.offset() });
     navigator.vibrate?.(40);
   }
-  $('buzz').addEventListener('pointerdown', e => buzz(e.timeStamp));
+  $('buzz').addEventListener('pointerdown', e => { if (e.isPrimary) buzz(e.timeStamp); });
   $('buzz').addEventListener('contextmenu', e => e.preventDefault());
   addEventListener('keydown', e => {
     if (e.code === 'Space' && !e.repeat && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); buzz(e.timeStamp); }
@@ -124,16 +147,16 @@
     const me = s.players.find(p => p.id === myId);
     const rank = s.buzzes.findIndex(b => b.id === myId);
     $('buzz').className = rank >= 0 ? 'done' : s.open ? 'live' : 'locked';
-    $('buzz').textContent = rank >= 0 ? `#${rank + 1}` : s.open ? 'BUZZ' : 'WAIT';
-    $('status').textContent = rank === 0 ? `You were first! (${s.buzzes[0].ms.toFixed(1)} ms)`
-      : rank > 0 ? `${(s.buzzes[rank].ms - s.buzzes[0].ms).toFixed(1)} ms behind first`
-      : s.open ? 'Tap the button or press Space' : 'Waiting for the host to open buzzers';
+    $('buzz').textContent = rank >= 0 ? `#${pad(rank + 1)}` : s.open ? 'BUZZ' : 'WAIT';
+    $('status').textContent = rank === 0 ? `First press! ${s.buzzes[0].ms.toFixed(1)} ms.`
+      : rank > 0 ? `${(s.buzzes[rank].ms - s.buzzes[0].ms).toFixed(1)} ms behind first.`
+      : s.open ? 'Buzzers are open. Tap to buzz.' : 'Hold tight. The host opens the buzzers.';
     $('score').textContent = me?.score ?? 0;
     $('myname').textContent = me?.name ?? '';
     if (document.activeElement !== $('name')) $('name').value = me?.name ?? '';
     $('order').innerHTML = renderBuzzes(s);
     $('board').innerHTML = [...s.players].sort((a, b) => b.score - a.score).map(p =>
-      `<tr class="${p.id === myId ? 'me' : ''}"><td class="nm"><span class="dot ${p.online ? 'on' : ''}"></span> ${esc(p.name)}${p.id === myId ? ' (you)' : ''}</td><td class="n">${p.score}</td></tr>`).join('');
+      `<tr class="${p.id === myId ? 'me' : ''}"><td class="nm"><span class="dot ${p.online ? 'on' : ''}"></span>${esc(p.name)}${p.id === myId ? ' (you)' : ''}</td><td class="n">${p.score}</td></tr>`).join('');
   }
 </script>
 </body>
